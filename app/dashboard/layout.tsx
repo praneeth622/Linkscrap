@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Database,
   LayoutDashboard,
@@ -33,6 +33,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
+import { useAuth } from '@/components/auth-provider';
 
 // Sidebar navigation structure with proper grouping
 const sidebarNavigation = [
@@ -86,7 +87,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  // const { effectiveTheme } = useTheme(); // Removed as not used in this layout
+  const router = useRouter();
+  const { user, loading, signOut } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -118,6 +120,50 @@ export default function DashboardLayout({
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  // Handle authentication
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth/login');
+    }
+  }, [user, loading, router]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Get user display name and initials - with fallbacks for when user is null
+  const userDisplayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const userInitials = userDisplayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600 dark:text-gray-400">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render dashboard if user is not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600 dark:text-gray-400">Redirecting...</span>
+        </div>
+      </div>
+    );
+  }
 
   // Filter sidebar items based on search
   const filteredNavigation = sidebarNavigation.map(group => ({
@@ -305,12 +351,12 @@ export default function DashboardLayout({
         <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className={`flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white ${isSidebarCollapsed ? 'justify-center' : ''}`}>
             <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-medium">YA</span>
+              <span className="text-xs font-medium">{userInitials}</span>
             </div>
             {!isSidebarCollapsed && (
               <>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">Young Alaska</div>
+                  <div className="text-sm font-medium truncate">{userDisplayName}</div>
                   <div className="text-xs opacity-80 truncate">Business Pro</div>
                 </div>
                 <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0" title="Online"></div>
@@ -456,10 +502,10 @@ export default function DashboardLayout({
                   aria-label="User menu"
                 >
                   <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
+                    <span className="text-xs font-medium text-white">{userInitials}</span>
                   </div>
                   <div className="text-left hidden md:block">
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Young Alaska</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{userDisplayName}</div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">Business Pro</div>
                   </div>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -467,8 +513,8 @@ export default function DashboardLayout({
                 {showProfile && (
                   <div className="absolute right-0 top-12 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50 animate-fade-in">
                     <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                      <div className="font-medium text-gray-900 dark:text-gray-100">Young Alaska</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">young.alaska@example.com</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{userDisplayName}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
                     </div>
                     <button className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors">
                       <User className="w-4 h-4" />
@@ -483,7 +529,10 @@ export default function DashboardLayout({
                       Help & Support
                     </button>
                     <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
-                      <button className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-red-600 dark:text-red-400 transition-colors">
+                      <button 
+                        onClick={handleSignOut}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-red-600 dark:text-red-400 transition-colors"
+                      >
                         <LogOut className="w-4 h-4" />
                         Sign Out
                       </button>

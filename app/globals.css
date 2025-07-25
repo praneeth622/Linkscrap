@@ -531,6 +531,315 @@
   background-color: rgba(75, 85, 99, 0.8);
 }
 
+/* Background Pattern for Auth Pages */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(83, 71, 206, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(83, 71, 206, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+[data-theme="dark"] .bg-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(136, 124, 253, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(136, 124, 253, 0.05) 1px, transparent 1px);
+}
+
+/* Enhanced Auth Form Styles */
+.auth-card {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .auth-card {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.4),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(71, 85, 105, 0.1);
+}
+
+/* Enhanced Input Styles for Auth */
+.auth-input {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  transition: all 0.2s ease;
+}
+
+.auth-input:focus {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--color-primary);
+  box-shadow: 
+    0 0 0 3px rgba(83, 71, 206, 0.1),
+    0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .auth-input {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(71, 85, 105, 0.8);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .auth-input:focus {
+  background: rgba(30, 41, 59, 1);
+  border-color: var(--color-primary);
+  box-shadow: 
+    0 0 0 3px rgba(83, 71, 206, 0.2),
+    0 1px 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Success/Error States */
+.success-state {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.error-state {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Enhanced Button Hover Effects */
+.btn-auth {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-blue) 100%);
+  transition: all 0.3s ease;
+}
+
+.btn-auth::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-auth:hover::before {
+  left: 100%;
+}
+
+.btn-auth:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 10px 25px -5px rgba(83, 71, 206, 0.4),
+    0 4px 6px -2px rgba(83, 71, 206, 0.1);
+}
+
+/* Social Login Button */
+.btn-social {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.btn-social:hover {
+  background: var(--color-background-secondary);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Floating Label Animation */
+.floating-label {
+  position: relative;
+}
+
+.floating-label input:focus + label,
+.floating-label input:not(:placeholder-shown) + label {
+  transform: translateY(-1.5rem) scale(0.875);
+  color: var(--color-primary);
+}
+
+.floating-label label {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  background: var(--color-surface);
+  padding: 0 0.25rem;
+}
+
+/* Liquid Landing Page Styles */
+.liquid-cursor {
+  cursor: none;
+}
+
+.liquid-cursor * {
+  cursor: none !important;
+}
+
+/* Liquid glass morphism */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Liquid gradient animations */
+@keyframes liquidFlow {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+}
+
+.liquid-blob {
+  animation: liquidFlow 8s ease-in-out infinite;
+}
+
+/* Liquid text effects */
+.liquid-text {
+  background: linear-gradient(45deg, #00FFF7, #FB2576, #00FFF7);
+  background-size: 200% 200%;
+  animation: liquidTextFlow 3s ease-in-out infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes liquidTextFlow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Liquid button effects */
+.liquid-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.liquid-button:hover::before {
+  left: 100%;
+}
+
+/* Liquid particle effects */
+.liquid-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #00FFF7 0%, transparent 70%);
+  border-radius: 50%;
+  animation: liquidParticle 6s linear infinite;
+}
+
+@keyframes liquidParticle {
+  0% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Liquid scroll effects */
+.liquid-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Liquid glow effects */
+.liquid-glow {
+  box-shadow: 
+    0 0 20px rgba(0, 255, 247, 0.3),
+    0 0 40px rgba(0, 255, 247, 0.2),
+    0 0 60px rgba(0, 255, 247, 0.1);
+}
+
+.liquid-glow-pink {
+  box-shadow: 
+    0 0 20px rgba(251, 37, 118, 0.3),
+    0 0 40px rgba(251, 37, 118, 0.2),
+    0 0 60px rgba(251, 37, 118, 0.1);
+}
+
+/* Liquid hover states */
+.liquid-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.liquid-hover:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+/* Liquid loading animation */
+.liquid-loading {
+  background: linear-gradient(90deg, #0B0B0F 25%, #00FFF7 50%, #0B0B0F 75%);
+  background-size: 200% 100%;
+  animation: liquidLoading 2s infinite;
+}
+
+@keyframes liquidLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Liquid reveal animation */
+.liquid-reveal {
+  clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+  transition: clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.liquid-reveal.active {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
 /* High Contrast Mode Support */
 @media (prefers-contrast: high) {
   :root {
@@ -544,4 +853,37 @@
     --color-text-primary: #FFFFFF;
     --color-text-secondary: #FFFFFF;
   }
+}
+
+/* Horizontal scroll animations for testimonials */
+@keyframes scroll-right {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-scroll-right {
+  animation: scroll-right 30s linear infinite;
+}
+
+.animate-scroll-left {
+  animation: scroll-left 30s linear infinite;
+}
+
+/* Pause animation on hover */
+.animate-scroll-right:hover,
+.animate-scroll-left:hover {
+  animation-play-state: paused;
 }

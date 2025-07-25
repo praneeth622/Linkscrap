@@ -162,13 +162,13 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-sf-pro text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1 flex items-center gap-2">
+          <div className="text-gray-600 mt-1 flex items-center gap-2">
             Welcome back! Here's what's happening with your LinkedIn data.
             <span className="inline-flex items-center gap-1 text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               Live
             </span>
-          </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-sm text-gray-600 bg-white px-3 py-2 rounded-lg border">
