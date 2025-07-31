@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -15,14 +15,46 @@ import {
   Calendar,
   Plus,
   ChevronDown,
-  TrendingUp
+  TrendingUp,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
+  X
 } from 'lucide-react';
+import { usePosts } from '@/lib/hooks/useLinkedInData';
 
 export default function PostsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [showCollectModal, setShowCollectModal] = useState(false);
+  const [showDiscoverModal, setShowDiscoverModal] = useState(false);
+  const [showAddDropdown, setShowAddDropdown] = useState(false);
+  const [collectUrls, setCollectUrls] = useState('');
+  const [discoverUrls, setDiscoverUrls] = useState('');
+  const [discoverType, setDiscoverType] = useState('company');
 
-  const posts = [
+  // Use the LinkedIn data hook
+  const {
+    loading,
+    error,
+    posts: apiPosts,
+    pagination,
+    clearError,
+    collectPosts,
+    discoverPostsByKeyword,
+    discoverPostsByCompany,
+    discoverPostsByProfile,
+    getAllPosts,
+    searchPosts
+  } = usePosts();
+
+  // Load posts on component mount
+  useEffect(() => {
+    getAllPosts(1, 20);
+  }, [getAllPosts]);
+
+  // Mock data for fallback
+  const mockPosts = [
     {
       id: 1,
       author: 'Sarah Chen',
@@ -109,8 +141,68 @@ export default function PostsPage() {
     }
   ];
 
-  const handleSearch = () => {
-    console.log('Searching for:', searchQuery);
+  // Display posts from API or fallback to mock data for development
+  const displayPosts = Array.isArray(apiPosts) ? apiPosts : 
+                      ((apiPosts as any)?.data?.total ? (apiPosts as any).data.total : 
+                      ((apiPosts as any)?.data ? (apiPosts as any).data : []));
+  
+  const finalPosts = displayPosts.length > 0 ? displayPosts : mockPosts;
+
+  // Map API data to expected structure for display
+  const mappedPosts = finalPosts.map((post: any) => ({
+    id: post.id || post.post_id,
+    author: post.author?.user_id || post.author_name || 'Unknown Author',
+    company: post.author?.company || post.company_name || 'Unknown Company',
+    avatar: post.author?.avatar || post.author_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author?.user_id || 'Unknown')}&background=6366f1&color=fff`,
+    content: post.post_text || post.content || post.title || 'No content available',
+    likes: post.engagement?.likes || post.likes || 0,
+    comments: post.engagement?.comments || post.comments || 0,
+    shares: post.engagement?.shares || post.shares || 0,
+    postedAt: post.date_posted ? new Date(post.date_posted).toLocaleDateString() : 'Unknown date',
+    extractedAt: post.timestamp ? new Date(post.timestamp).toLocaleDateString() : 'Recently',
+    type: post.post_type || 'post',
+    engagement: (post.engagement?.likes || 0) > 500 ? 'high' : (post.engagement?.likes || 0) > 100 ? 'medium' : 'low',
+    url: post.url
+  }));
+
+  const handleSearch = async () => {
+    if (searchQuery.trim()) {
+      await searchPosts(searchQuery);
+    } else {
+      await getAllPosts(1, 20);
+    }
+  };
+
+  const handleCollectPosts = async () => {
+    if (!collectUrls.trim()) return;
+
+    const urls = collectUrls.split('\n').filter(url => url.trim());
+    try {
+      await collectPosts(urls);
+      setCollectUrls('');
+      setShowCollectModal(false);
+    } catch (err) {
+      console.error('Failed to collect posts:', err);
+    }
+  };
+
+  const handleDiscoverPosts = async () => {
+    if (!discoverUrls.trim()) return;
+
+    const urls = discoverUrls.split('\n').filter(url => url.trim());
+    try {
+      if (discoverType === 'company') {
+        await discoverPostsByCompany(urls);
+      } else if (discoverType === 'profile') {
+        await discoverPostsByProfile(urls);
+      } else if (discoverType === 'keyword') {
+        await discoverPostsByKeyword(urls);
+      }
+      setDiscoverUrls('');
+      setShowDiscoverModal(false);
+    } catch (err) {
+      console.error('Failed to discover posts:', err);
+    }
   };
 
   const getEngagementColor = (engagement: string) => {
@@ -140,16 +232,72 @@ export default function PostsPage() {
           <p className="text-gray-600 mt-1">Analyze LinkedIn posts and content performance</p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => getAllPosts(1, 20)}
+            disabled={loading}
+            className="btn-secondary"
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-2" />
+            )}
+            Refresh
+          </button>
           <button className="btn-secondary">
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </button>
-          <button className="btn-primary">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Post
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowAddDropdown(!showAddDropdown)}
+              className="btn-primary"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Posts
+              <ChevronDown className="w-4 h-4 ml-2" />
+            </button>
+            {showAddDropdown && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                <button
+                  onClick={() => {
+                    setShowCollectModal(true);
+                    setShowAddDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-t-lg"
+                >
+                  Collect by URLs
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDiscoverModal(true);
+                    setShowAddDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-b-lg"
+                >
+                  Discover Posts
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-red-800">{error}</p>
+          </div>
+          <button
+            onClick={clearError}
+            className="text-red-500 hover:text-red-700"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div className="card p-6">
@@ -198,26 +346,47 @@ export default function PostsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="metric-card">
-          <div className="text-2xl font-bold text-primary-purple mb-2">2,847</div>
+          <div className="text-2xl font-bold text-primary-purple mb-2">{mappedPosts.length}</div>
           <div className="text-sm text-gray-600">Total Posts</div>
         </div>
         <div className="metric-card">
-          <div className="text-2xl font-bold text-primary-blue mb-2">156</div>
-          <div className="text-sm text-gray-600">New This Week</div>
+          <div className="text-2xl font-bold text-primary-blue mb-2">{pagination.total || 0}</div>
+          <div className="text-sm text-gray-600">API Total</div>
         </div>
         <div className="metric-card">
-          <div className="text-2xl font-bold text-teal mb-2">3.4K</div>
+          <div className="text-2xl font-bold text-teal mb-2">
+            {mappedPosts.length > 0 ? Math.round(mappedPosts.reduce((sum: number, post: any) => sum + (post.likes || 0), 0) / mappedPosts.length) : 0}
+          </div>
           <div className="text-sm text-gray-600">Avg. Engagement</div>
         </div>
         <div className="metric-card">
-          <div className="text-2xl font-bold text-success mb-2">89%</div>
+          <div className="text-2xl font-bold text-success mb-2">
+            {mappedPosts.length > 0 ? Math.round((mappedPosts.filter((p: any) => p.engagement === 'high').length / mappedPosts.length) * 100) : 0}%
+          </div>
           <div className="text-sm text-gray-600">High Quality</div>
         </div>
       </div>
 
       {/* Posts List */}
       <div className="space-y-6">
-        {posts.map((post) => (
+        {loading && mappedPosts.length === 0 ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-purple" />
+            <span className="ml-2 text-gray-600">Loading posts...</span>
+          </div>
+        ) : mappedPosts.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 mb-4">No posts found</div>
+            <button
+              onClick={() => setShowCollectModal(true)}
+              className="btn-primary"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Post
+            </button>
+          </div>
+        ) : (
+          mappedPosts.map((post: any) => (
           <div key={post.id} className="card p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-start gap-4">
               <img 
@@ -283,8 +452,129 @@ export default function PostsPage() {
               </div>
             </div>
           </div>
-        ))}
+          ))
+        )}
       </div>
+
+      {/* Collect Posts Modal */}
+      {showCollectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Collect Posts by URLs</h2>
+              <button
+                onClick={() => setShowCollectModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  LinkedIn Post URLs (one per line)
+                </label>
+                <textarea
+                  value={collectUrls}
+                  onChange={(e) => setCollectUrls(e.target.value)}
+                  placeholder="https://www.linkedin.com/posts/example-post&#10;https://www.linkedin.com/pulse/example-article"
+                  className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-purple focus:border-transparent resize-none"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowCollectModal(false)}
+                  className="btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCollectPosts}
+                  disabled={!collectUrls.trim() || loading}
+                  className="btn-primary flex-1"
+                >
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-2" />
+                  )}
+                  Collect Posts
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Discover Posts Modal */}
+      {showDiscoverModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Discover Posts</h2>
+              <button
+                onClick={() => setShowDiscoverModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Discovery Type
+                </label>
+                <select
+                  value={discoverType}
+                  onChange={(e) => setDiscoverType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-purple focus:border-transparent"
+                >
+                  <option value="company">From Company URLs</option>
+                  <option value="profile">From Profile URLs</option>
+                  <option value="url">From General URLs</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  URLs (one per line)
+                </label>
+                <textarea
+                  value={discoverUrls}
+                  onChange={(e) => setDiscoverUrls(e.target.value)}
+                  placeholder={
+                    discoverType === 'company' 
+                      ? "https://www.linkedin.com/company/microsoft&#10;https://www.linkedin.com/company/google"
+                      : discoverType === 'profile'
+                      ? "https://www.linkedin.com/in/username&#10;https://www.linkedin.com/in/another-user"
+                      : "https://www.linkedin.com/feed/&#10;https://www.linkedin.com/today/"
+                  }
+                  className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-purple focus:border-transparent resize-none"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowDiscoverModal(false)}
+                  className="btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDiscoverPosts}
+                  disabled={!discoverUrls.trim() || loading}
+                  className="btn-primary flex-1"
+                >
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4 mr-2" />
+                  )}
+                  Discover Posts
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
